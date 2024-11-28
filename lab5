@@ -1,0 +1,214 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+#include <numeric>
+#include <climits>
+
+namespace FileTasks {
+
+    // Метод для заполнения бинарного файла случайными числами
+    void fillBinaryFile(const std::string& filename, size_t count, int min = 0, int max = 100) {
+        std::ofstream file(filename, std::ios::binary);
+        if (!file) {
+            std::cerr << "Ошибка при открытии файла для записи: " << filename << std::endl;
+            return;
+        }
+        srand(time(0));
+        for (size_t i = 0; i < count; ++i) {
+            int number = min + rand() % (max - min + 1);
+            file.write(reinterpret_cast<char*>(&number), sizeof(number));
+        }
+        file.close();
+    }
+
+    // Задание 1: Формирование нового файла
+    void task1(const std::string& inputFile, const std::string& outputFile) {
+        std::ifstream input(inputFile, std::ios::binary);
+        if (!input) {
+            std::cerr << "Ошибка при открытии входного файла: " << inputFile << std::endl;
+            return;
+        }
+        std::vector<int> numbers;
+        int num;
+        while (input.read(reinterpret_cast<char*>(&num), sizeof(num))) {
+            numbers.push_back(num);
+        }
+        input.close();
+
+        std::ofstream output(outputFile, std::ios::binary);
+        if (!output) {
+            std::cerr << "Ошибка при открытии выходного файла: " << outputFile << std::endl;
+            return;
+        }
+
+        for (size_t i = 1; i <= numbers.size(); ++i) {
+            output.write(reinterpret_cast<char*>(numbers.data()), i * sizeof(int));
+        }
+        output.close();
+    }
+
+    // Задание 2: Копирование элементов в квадратную матрицу
+    void task2(const std::string& inputFile, size_t matrixSize) {
+        std::ifstream input(inputFile, std::ios::binary);
+        if (!input) {
+            std::cerr << "Ошибка при открытии файла: " << inputFile << std::endl;
+            return;
+        }
+        std::vector<int> numbers;
+        int num;
+        while (input.read(reinterpret_cast<char*>(&num), sizeof(num))) {
+            numbers.push_back(num);
+        }
+        input.close();
+
+        std::vector<std::vector<int>> matrix(matrixSize, std::vector<int>(matrixSize, 0));
+        size_t index = 0;
+        for (size_t i = 0; i < matrixSize; ++i) {
+            for (size_t j = 0; j < matrixSize; ++j) {
+                if (index < numbers.size()) {
+                    matrix[i][j] = numbers[index++];
+                }
+            }
+        }
+
+        int closestRow = -1;
+        int closestSum = INT_MAX;
+        for (size_t i = 0; i < matrixSize; ++i) {
+            int sum = std::accumulate(matrix[i].begin(), matrix[i].end(), 0);
+            if (std::abs(sum) < std::abs(closestSum)) {
+                closestSum = sum;
+                closestRow = i;
+            }
+        }
+
+        std::cout << "Строка с суммой, ближайшей к нулю: " << closestRow + 1 << std::endl;
+    }
+
+    // Структура для задания 3
+    struct Toy {
+        char name[30];
+        int price;
+        int ageMin;
+        int ageMax;
+    };
+
+    // Задание 3: Игрушки для определённого возраста
+    void task3(const std::string& inputFile) {
+        std::ifstream input(inputFile, std::ios::binary);
+        if (!input) {
+            std::cerr << "Ошибка при открытии файла: " << inputFile << std::endl;
+            return;
+        }
+
+        Toy toy;
+        std::vector<std::string> suitableToys;
+        while (input.read(reinterpret_cast<char*>(&toy), sizeof(Toy))) {
+            if (toy.ageMin <= 4 && toy.ageMax >= 10) {
+                suitableToys.push_back(toy.name);
+            }
+        }
+        input.close();
+
+        std::cout << "Игрушки, подходящие детям 4 и 10 лет: ";
+        for (const auto& name : suitableToys) {
+            std::cout << name << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Задание 4: Произведение минимального и максимального элементов
+    void task4(const std::string& inputFile) {
+        std::ifstream input(inputFile);
+        if (!input) {
+            std::cerr << "Ошибка при открытии файла: " << inputFile << std::endl;
+            return;
+        }
+
+        int num, min = INT_MAX, max = INT_MIN;
+        while (input >> num) {
+            if (num < min) min = num;
+            if (num > max) max = num;
+        }
+        input.close();
+
+        std::cout << "Произведение максимального и минимального: " << min * max << std::endl;
+    }
+
+    // Задание 5: Подсчёт нечётных элементов
+    void task5(const std::string& inputFile) {
+        std::ifstream input(inputFile);
+        if (!input) {
+            std::cerr << "Ошибка при открытии файла: " << inputFile << std::endl;
+            return;
+        }
+
+        int num, oddCount = 0;
+        while (input >> num) {
+            if (num % 2 != 0) ++oddCount;
+        }
+        input.close();
+
+        std::cout << "Количество нечётных чисел: " << oddCount << std::endl;
+    }
+
+    // Задание 6: Длины строк текста
+    void task6(const std::string& inputFile, const std::string& outputFile) {
+        std::ifstream input(inputFile);
+        if (!input) {
+            std::cerr << "Ошибка при открытии файла: " << inputFile << std::endl;
+            return;
+        }
+
+        std::ofstream output(outputFile);
+        if (!output) {
+            std::cerr << "Ошибка при открытии файла: " << outputFile << std::endl;
+            return;
+        }
+
+        std::string line;
+        while (std::getline(input, line)) {
+            output << line.length() << std::endl;
+        }
+        input.close();
+        output.close();
+    }
+}
+
+int main() {
+    using namespace FileTasks;
+
+    int choice;
+    std::cout << "Выберите задание (1-6): ";
+    std::cin >> choice;
+
+    switch (choice) {
+        case 1:
+            fillBinaryFile("input1.bin", 10);
+            task1("input1.bin", "output1.bin");
+            break;
+        case 2:
+            fillBinaryFile("input2.bin", 10);
+            task2("input2.bin", 3);
+            break;
+        case 3:
+            task3("toys.bin");
+            break;
+        case 4:
+            task4("numbers.txt");
+            break;
+        case 5:
+            task5("numbers.txt");
+            break;
+        case 6:
+            task6("text.txt", "lengths.txt");
+            break;
+        default:
+            std::cout << "Некорректный выбор!" << std::endl;
+    }
+
+    return 0;
+}
